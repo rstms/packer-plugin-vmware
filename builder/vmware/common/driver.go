@@ -356,7 +356,8 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 	    if runtime.GOOS == "windows" {
 		winmac := strings.ReplaceAll(MACAddress, ":", "-")
 		cmd := exec.Command("arp", "-a")
-		if stdout, _, err := runAndLog(cmd); err != nil {
+		stdout, _, err := runAndLog(cmd);
+		if err != nil {
 		    return err
 		}
 		lines := strings.Split(stdout, "\n")
