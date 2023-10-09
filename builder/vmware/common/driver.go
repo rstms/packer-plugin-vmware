@@ -366,7 +366,6 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 			words := re.Split(strings.TrimSpace(line), -1)
 			addrs := make([]string, 1)
 			addrs[0] = words[0]
-			addrs.append(words[0])
 			log.Printf("GuestIP discovered IP %s for MAC %s using arp", addrs[0], MACAddress)
 			return addrs, nil
 		    }
