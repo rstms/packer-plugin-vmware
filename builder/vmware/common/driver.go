@@ -358,7 +358,7 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		cmd := exec.Command("arp", "-a")
 		stdout, _, err := runAndLog(cmd);
 		if err != nil {
-		    return err
+		    return []string{}, err
 		}
 		lines := strings.Split(stdout, "\n")
 		for _, line := range lines {
