@@ -352,29 +352,30 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		return []string{}, err
 	}
 
+	log.Printf("network=%s os=%s", network, runtime.GOOS)
 	if network == "bridged" {
-	    log.Printf("bridged network; scanning arp output for MAC address %s", MACAddress)
-	    if runtime.GOOS == "windows" {
-		winmac := strings.ReplaceAll(MACAddress, ":", "-")
-		cmd := exec.Command("arp", "-a")
-		stdout, _, err := runAndLog(cmd);
-		if err != nil {
-		    return []string{}, err
+		log.Printf("bridged network; scanning arp output for MAC address %s", MACAddress)
+		if runtime.GOOS == "windows" {
+			winmac := strings.ReplaceAll(MACAddress, ":", "-")
+			cmd := exec.Command("arp", "-a")
+			stdout, _, err := runAndLog(cmd)
+			if err != nil {
+				return []string{}, err
+			}
+			lines := strings.Split(stdout, "\n")
+			for _, line := range lines {
+				log.Printf("checking %s...", line)
+				if strings.Contains(line, winmac) {
+					log.Printf("found: %s", line)
+					re := regexp.MustCompile(`\s+`)
+					words := re.Split(strings.TrimSpace(line), -1)
+					addrs := make([]string, 1)
+					addrs[0] = words[0]
+					log.Printf("GuestIP discovered IP %s for MAC %s using arp", addrs[0], MACAddress)
+					return addrs, nil
+				}
+			}
 		}
-		lines := strings.Split(stdout, "\n")
-		for _, line := range lines {
-		    log.Printf("checking %s...", line)
-		    if strings.Contains(line, winmac) {
-			log.Printf("found: %s", line)
-			re := regexp.MustCompile(`\s+`)
-			words := re.Split(strings.TrimSpace(line), -1)
-			addrs := make([]string, 1)
-			addrs[0] = words[0]
-			log.Printf("GuestIP discovered IP %s for MAC %s using arp", addrs[0], MACAddress)
-			return addrs, nil
-		    }
-		}
-	    }
 	}
 
 	// iterate through all of the devices and collect all the dhcp lease entries
@@ -607,8 +608,8 @@ func (d *VmwareDriver) HostIP(state multistep.StateBag) (string, error) {
 	devices, err := netmap.NameIntoDevices(network)
 
 	if runtime.GOOS == "windows" && network == "bridged" {
-	    log.Printf("Windows bridged network, HostIP=127.0.0.1")
-	    return "127.0.0.1", nil
+		log.Printf("Windows bridged network, HostIP=127.0.0.1")
+		return "127.0.0.1", nil
 	}
 
 	// log them to see what was detected
