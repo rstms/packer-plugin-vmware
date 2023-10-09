@@ -359,7 +359,8 @@ func (d *VmwareDriver) PotentialGuestIP(state multistep.StateBag) ([]string, err
 		if stdout, _, err := runAndLog(cmd); err != nil {
 		    return err
 		}
-		for _, line := strings.split(stdout, "\n") {
+		lines := strings.split(stdout, "\n")
+		for _, line := range lines {
 		    if strings.Contains(line, winmac) {
 			re := regexp.MustCompile(`\s+`)
 			words := re.Split(strings.TrimSpace(line), -1)
